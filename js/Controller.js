@@ -22,6 +22,7 @@ export default class Controller {
     .on("@submit", (event) =>this.search(event.detail.value))
     .on("@reset", ()=> this.reset());
 
+    this.tabView.on('@change', event => this.changeTab(event.detail.value))
     // TODO
   }
 
@@ -36,6 +37,12 @@ export default class Controller {
     this.store.searchKeyword=""
     this.store.searchResult= []
     this.render()
+
+  }
+
+  changeTab(tab){
+    this.store.selectedTab= tab;
+    this.render();
 
   }
   
