@@ -29,7 +29,11 @@ export default class Controller {
     this.store.search(searchKeyword)
     this.render()
   }
+  // 검색 폼에 x버튼 누를시 뷰와 검색어 리셋
   reset(){
+    this.store.searchKeyword=""
+    this.store.searchResult= []
+    this.render()
 
   }
   
