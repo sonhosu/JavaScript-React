@@ -1,64 +1,100 @@
+import { TabType } from "./views/TabView.js";
+
 const tag = "[Controller]";
 
 export default class Controller {
-  constructor(store, { searchFormView ,searchResultView, tabView}) {
+  constructor(
+    store,
+    {
+      searchFormView,
+      searchResultView,
+      tabView,
+      keywordListView,
+      historyListView,
+    }
+  ) {
     console.log(tag, "constructor");
 
     this.store = store;
 
     this.searchFormView = searchFormView;
     this.searchResultView = searchResultView;
-    this.tabView= tabView;
+    this.tabView = tabView;
+    this.keywordListView = keywordListView;
+    this.historyListView = historyListView;
 
     this.subscribeViewEvents();
     this.render();
   }
 
-  //검색에서 이벤트 발생시 실행됨
   subscribeViewEvents() {
-    console.log(tag,"이벤트발생 !!")
-
     this.searchFormView
-    .on("@submit", (event) =>this.search(event.detail.value))
-    .on("@reset", ()=> this.reset());
+      .on("@submit", (event) => this.search(event.detail.value))
+      .on("@reset", () => this.reset());
 
-    this.tabView.on('@change', event => this.changeTab(event.detail.value))
-    // TODO
+    this.tabView.on("@change", (event) => this.changeTab(event.detail.value));
+
+    this.keywordListView.on("@click", (event) =>
+      this.search(event.detail.value)
+    );
+
+    this.historyListView
+      .on("@click", (event) => this.search(event.detail.value))
+      .on("@remove", (event) => this.removeHistory(event.detail.value));
   }
 
-  //검색 키워드가 들어오는곳
-  search(searchKeyword) {
-    console.log(tag, "search", searchKeyword);
-    this.store.search(searchKeyword)
-    this.render()
-  }
-  // 검색 폼에 x버튼 누를시 뷰와 검색어 리셋
-  reset(){
-    this.store.searchKeyword=""
-    this.store.searchResult= []
-    this.render()
+  search(keyword) {
+    console.log(tag, "search", keyword);
 
-  }
-
-  changeTab(tab){
-    this.store.selectedTab= tab;
+    this.store.search(keyword);
     this.render();
-
   }
-  
-  render(){
-    if(this.store.searchKeyword.length > 0){
+
+  reset() {
+    console.log(tag, "reset");
+
+    this.store.searchKeyword = "";
+    this.store.searchResult = [];
+    this.render();
+  }
+
+  changeTab(tab) {
+    console.log(tag, "changeTab", tab);
+
+    this.store.selectedTab = tab;
+    this.render();
+  }
+
+  removeHistory(keyword) {
+    this.store.removeHistory(keyword);
+    this.render();
+  }
+
+  render() {
+    if (this.store.searchKeyword.length > 0) {
       return this.renderSearchResult();
     }
+
     this.tabView.show(this.store.selectedTab);
+    if (this.store.selectedTab === TabType.KEYWORD) {
+      this.keywordListView.show(this.store.getKeywordList());
+      this.historyListView.hide();
+    } else if (this.store.selectedTab === TabType.HISTORY) {
+      this.keywordListView.hide();
+      this.historyListView.show(this.store.getHistoryList());
+    } else {
+      throw "사용할 수 없는 탭입니다.";
+    }
+
     this.searchResultView.hide();
   }
-  renderSearchResult(){
-      this.tabView.hide();
-      this.searchResultView.show(this.store.searchResult)
+
+  renderSearchResult() {
+    this.searchFormView.show(this.store.searchKeyword);
+    this.tabView.hide();
+    this.keywordListView.hide();
+    this.historyListView.hide();
+
+    this.searchResultView.show(this.store.searchResult);
   }
 }
-
-
-
-
